@@ -462,24 +462,28 @@ void med_file_open(void)
     	printf("fopen fp_M error");
 	}
 }
-
+#if 1
 //功能：将冥想数据保存到文件夹中！
 static void conserve_med_data(void)
 {   
   	int i;
   	struct info *info;
- 	char bsn_buf[20] = {};
-  	char bver_buf[20] = {};
-  	char uid_buf[20] = {};
+ 	char bsn_buf[20] = {0};
+  	char bver_buf[20] = {0};
+  	char uid_buf[20] = {0};
   	json_object *reply_object = json_object_new_object();
   	json_object *data_object= json_object_new_array();
   	char *reply_json = NULL;
+	//json_object *med_object = json_object_new_object();
 
 
    	info = get_meddata_form_ble();
    
   	if(!mozart_ini_getkey("/usr/data/system.ini", "base", "sn", bsn_buf))
-    	json_object_object_add(reply_object, "bsn", json_object_new_string(bsn_buf));
+  	{
+  		printf("\nbsn_buf:%s\n",bsn_buf);
+		json_object_object_add(reply_object, "bsn", json_object_new_string(bsn_buf));
+	}
   	if(!mozart_ini_getkey("/usr/data/system.ini", "base", "ver", bver_buf))
     	json_object_object_add(reply_object, "bver", json_object_new_string(bver_buf));
    	if(!mozart_ini_getkey("/usr/data/system.ini", "base", "uid", uid_buf))
@@ -503,6 +507,7 @@ static void conserve_med_data(void)
  	json_object_object_add(reply_object, "mfrom", json_object_new_int(med_info.mfrom));
 
  	json_object_object_add(reply_object, "dur", json_object_new_int(med_info.med_time));
+	json_object_object_add(reply_object, "data",data_object);
 
 	for(i=0;i<=med_info.med_time;i++)
 	{   
@@ -519,21 +524,30 @@ static void conserve_med_data(void)
 	json_object_object_add(reply_object, "score", json_object_new_int(100));
 	json_object_object_add(reply_object, "rank", json_object_new_int(1));
 
-	json_object_object_add(reply_object, "data",data_object);
+	//json_object_object_add(reply_object, "data",data_object);
  	reply_json = strdup(json_object_get_string(reply_object));
 
-	fwrite(reply_json,1,strlen(reply_json),fp_M);
-
-	json_object_put(reply_object);
-       free(reply_json);	
+	fwrite(reply_json,1,strlen(reply_json)+1,fp_M);
+	if(reply_object != NULL)	//修改于2018.8.11号
+	{
+		json_object_put(reply_object);
+		reply_object = NULL;
+	}
+	if(reply_json != NULL)	//修改于2018.8.11号
+	{
+		free(reply_json);	
+		reply_json = NULL;
+	}
+       
 }
+#endif
 
 void med_file_close(void)
 {
 	if(med_info.med_time>=5)
     {
     	if(med_info.med_time>=30)
-        conserve_med_data();
+        conserve_med_data();			//暂时屏蔽掉，测试是否和此函数有关系
 	  	fclose(fp_B);
 	  	fclose(fp_R);
 	  	fclose(fp_M);
@@ -543,10 +557,14 @@ void med_file_close(void)
          	memset(up_B, 0, 100);
 			memset(up_R, 0, 100);
 			memset(up_M, 0, 100);
-			strncpy(up_B,med_info.name_B,strlen(med_info.name_B));
-			strncpy(up_R,med_info.name_R,strlen(med_info.name_R));
-			strncpy(up_M,med_info.name_M,strlen(med_info.name_M));
-	        pthread_cond_signal(&ego_med_data_cound);
+			strncpy(up_B,med_info.name_B,strlen(med_info.name_B)+1);
+			strncpy(up_R,med_info.name_R,strlen(med_info.name_R)+1);
+			strncpy(up_M,med_info.name_M,strlen(med_info.name_M)+1);
+			if(wifi_status != 1)	//新添加于2018.8.12号
+			{
+				 printf("\n发送信号量上传冥想数据到服务器\n");
+				 pthread_cond_signal(&ego_med_data_cound);			//暂时屏蔽掉，测试是否和网络有关系
+			}
         }
 	  	else
 		{
@@ -636,7 +654,7 @@ int conserve_sleep_data(void)
  	json_object_object_add(reply_object, "xsn", json_object_new_string((char *)info->X_number));
  	json_object_object_add(reply_object, "xver", json_object_new_string((char *)info->X_binnumber));
  	json_object_object_add(reply_object, "tsn", json_object_new_string((char *)info->Tower_number));
- 	json_object_object_add(reply_object, "tver", json_object_new_string((char *)info->Tower_binnumber));
+ 	json_object_object_add(reply_object, "tver", json_object_new_string((char *)g_Tower_binnumber));
  	json_object_object_add(reply_object, "tpver", json_object_new_string(""));
  	json_object_object_add(reply_object, "fname", json_object_new_string(""));
  	json_object_object_add(reply_object, "ttype", json_object_new_int(2));
@@ -671,7 +689,11 @@ int conserve_sleep_data(void)
   	json_object_put(reply_object);
   		   
   	fclose(fp);
-  	pthread_cond_signal(&ego_sleep_data_cound);
+	if(wifi_status != 1)	//新添加于2018.8.12号
+	{
+		pthread_cond_signal(&ego_sleep_data_cound);
+	}
+  	
 	return 0;
 }
 
@@ -897,6 +919,7 @@ static void *ego_med_server(void *arg)
    	CURLcode res;  
     while(1)
     {
+    	printf("\n上传冥想数据.........\n");
     	pthread_mutex_lock(&ego_med_data_mutex);
 		pthread_cond_wait(&ego_med_data_cound,&ego_med_data_mutex);
 		
@@ -904,7 +927,7 @@ static void *ego_med_server(void *arg)
       	curl = curl_easy_init();
 		post = NULL;
 		last = NULL;
-
+		printf("\n上传冥想数据......M...\n");
         curl_easy_setopt(curl,CURLOPT_URL,"http://myego.applinzi.com/Home/EgoBase/UploadMedData");
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
 	    curl_formadd(&post, &last, CURLFORM_COPYNAME, "name", CURLFORM_COPYCONTENTS, up_M+17, CURLFORM_END);
@@ -919,7 +942,7 @@ static void *ego_med_server(void *arg)
         curl_easy_cleanup(curl); 
 
 /*****************************up B**************************/
-		
+		printf("\n上传冥想数据......B...\n");
       	curl = curl_easy_init();
 		post = NULL;
 		last = NULL;
@@ -936,7 +959,7 @@ static void *ego_med_server(void *arg)
         curl_easy_cleanup(curl); 
 
  /************************up R***********************************/
-
+		printf("\n上传冥想数据......R...\n");
       	curl = curl_easy_init();
 		post = NULL;
 		last = NULL;

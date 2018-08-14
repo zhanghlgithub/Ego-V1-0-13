@@ -214,6 +214,8 @@ extern struct info *info;
 extern char  light_list[100][13];
 extern char  gif_list[100][13];
 extern unsigned char g_Tower_binnumber[20];		//新添加于2018.7.30号
+//extern unsigned char g_x_number[20];
+
 extern int g_tower_power;		//新添加于2018.8.6号
 extern int g_tower_if_power;	//新添加于2018.8.6号
 extern int start_bt(void);

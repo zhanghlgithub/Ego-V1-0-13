@@ -186,14 +186,14 @@ int power_last_mode=-1;
 
 void *battery_capacity_thread(void *arg)       //���������߳�
 {
-//	char buf_value[3];
-//	int fd_value = -1;
+	char buf_value[3];
+	int fd_value = -1;
 	while(1)
 	{
 		/***********************************test***********************************************/
-		//fd_value = open(POWER_ON, O_RDONLY);
-		//read(fd_value,buf_value,3);
-		//g_power_on = buf_value[0];
+		fd_value = open(POWER_ON, O_RDONLY);
+		read(fd_value,buf_value,3);
+		g_power_on = buf_value[0];
 		//printf("buf_value:%d,g_power_on:%d................\n",buf_value[0],g_power_on);
 		/*************************************************************************************/
 		sleep(10);
@@ -286,23 +286,16 @@ void *manger_tower_battery_thread(void *arg)
 	int state = 0;			//1：正在充电，0：断开充电
 	int state_tower = 1;	// 1:电量大于20, 0：电量小于20
 	/*************************************************************************/
-	char buf_value[3];
-	int fd_value = -1;
-	
+	//sleep(10);
 	/************************************************************************/
-
+	
 //	struct info *info;
 	if((capacity > 40) || (g_power_on == 48)){			//新添加于2018.7.30号
 		lifting_appliance_control(4);
 		state = 1;
 	}
 	while(1)
-	{
-		fd_value = open(POWER_ON, O_RDONLY);
-		read(fd_value,buf_value,3);
-		g_power_on = buf_value[0];
-	//	printf("buf_value:%d,g_power_on:%d................\n",buf_value[0],g_power_on);
-	
+	{	
 		if((capacity > 40) || (g_power_on == 48))	//逻辑：base电量大于40给tower充电，或者当前正在充电//新添加于2018.7.30号
 		{
 			
@@ -347,7 +340,7 @@ void *manger_tower_battery_thread(void *arg)
 		{
 			state_tower = 1;
 		}
-		sleep(2);
+		sleep(5);
 	}
 }
 

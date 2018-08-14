@@ -733,11 +733,12 @@ static char *get_med_data(void)
 {   
 	int i;
   	struct info *info;
-  	char bsn_buf[20] = {};
-  	char bver_buf[20] = {};
-  	char uid_buf[20] = {};
+  	char bsn_buf[20] = {0};
+  	char bver_buf[20] = {0};
+  	char uid_buf[20] = {0};
   	json_object *reply_object = json_object_new_object();
   	json_object *data_object= json_object_new_array();
+	//json_object *med_object = json_object_new_object();
   	char *reply_json = NULL;
 	info = get_meddata_form_ble();
     if(!mozart_ini_getkey("/usr/data/system.ini", "base", "sn", bsn_buf))	
@@ -761,34 +762,41 @@ static char *get_med_data(void)
  	json_object_object_add(reply_object, "mname", json_object_new_string(med_info.mname));//冥想时使用的音乐名称
  	json_object_object_add(reply_object, "mfrom", json_object_new_int(med_info.mfrom));//冥想时使用的音乐名称
  	json_object_object_add(reply_object, "dur", json_object_new_int(med_info.med_time));//数据的时长："dur"，单位为秒，也是data数组的长度
+	json_object_object_add(reply_object, "data",data_object);	//修改于2018.8.12号
+
 	for(i=0;i<=med_info.med_time;i++)	//以列表形式存储每一秒的专注度、放松度、prrosignal数据
 	{   
 		json_object *med_object = json_object_new_object();
+		//printf("a:%d,m:%d.........\n",med_info.zhuanzhu[i],med_info.fangsong[i]);
 		json_object_object_add(med_object, "a", json_object_new_int(med_info.zhuanzhu[i]));	
 		json_object_object_add(med_object, "m", json_object_new_int(med_info.fangsong[i]));	
 		json_object_object_add(med_object, "p", json_object_new_int(0));	
 		json_object_array_add(data_object, med_object);
 	}
+
 	json_object_object_add(reply_object, "aindex", json_object_new_int(100));//专注度均值??
 	json_object_object_add(reply_object, "mindex", json_object_new_int(100));//放松度均值??
 	json_object_object_add(reply_object, "score", json_object_new_int(100));//本次训练综合评分??
 	json_object_object_add(reply_object, "rank", json_object_new_int(1));//训练结果排名位置??
-	json_object_object_add(reply_object, "data",data_object);
+	//json_object_object_add(reply_object, "data",data_object);		//修改于2018.8.12号
     reply_json = reply_json_compose(reply_object,"5");
 	printf("\nMED info:%s\n",reply_json);
 	
 	/*******************************2018.6.26号************************************************/
+#if 0
 	if(reply_object != NULL)
 	{
 		json_object_put(reply_object);
 		reply_object = NULL;
 	}
+//修改于2018.8.11号
+						
 	if (data_object != NULL)
 	{
 		json_object_put(data_object);
 		data_object = NULL;
 	}
-
+#endif
 	/****************************************************************************************/
 //	json_object_put(reply_object);
 	return reply_json;

@@ -65,6 +65,7 @@ static pthread_t music_status_event;
 static pthread_mutex_t musicplayer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int reply_time = 1;
+int g_led_num_flag = -1;
 
 static mozart_event mozart_musicplayer_event = {
 	.event = {
@@ -867,6 +868,7 @@ static void *music_status_reply_thread(void *arg)
     time_t timep;
     struct info *info;
 	int led_num = 0;
+	int state_five_led = 1;
     while(1)
     {
 		status =  mozart_musicplayer_get_status(mozart_musicplayer_handler);
@@ -920,18 +922,27 @@ static void *music_status_reply_thread(void *arg)
             if((int)(info->X_brain_attention)==0)
             {
              	//printf("\n  x:%d",(int)(info->X_brain_attention));
-             //	printf("此时PS的值为0\n");
-             //	lifting_appliance_led_PS(3);
+             	printf("此时放松度的值为0\n");
+             	//lifting_appliance_led_PS(0);
 				lifting_appliance_go_high=0; 
 #if 1
 				if((int)(info->X_brain_quality) == 0)
 				{
-					lifting_appliance_led_PS(0);
+					if(state_five_led)
+					{
+						lifting_appliance_led(6);
+						state_five_led = 0;
+					}
 				}
 				else
 				{
+					state_five_led = 1;
 					led_num = ((int)(info->X_brain_quality))/50+1;
-               	 	lifting_appliance_led_PS(led_num);  
+					if(led_num != g_led_num_flag)
+					{
+						g_led_num_flag = led_num;
+						lifting_appliance_led_PS(g_led_num_flag);
+					}               	 	  
 				}
 #endif				
                 //lifting_appliance_led_PS(3); 
@@ -940,6 +951,8 @@ static void *music_status_reply_thread(void *arg)
 			{	//lifting_appliance_led(lifting_appliance_go_high);
 				if(g_tower_power > 20)	//修改于2018.7.30号
 				{
+					state_five_led = 1;
+					printf("\n此时放松度的值不为0，tower电量大于20\n");
 					lifting_appliance_go_high=((int)(info->X_brain_attention))/20+1;
 					//printf("\n  x:%d",(int)(info->X_brain_attention));	
 					if(lifting_appliance_go_high==6)
@@ -950,11 +963,18 @@ static void *music_status_reply_thread(void *arg)
 				}
 				else
 				{
-					lifting_appliance_led(6);
+					printf("\n此时放松度的值不为0，tower电量小于20\n");
+					if(state_five_led)
+					{
+						lifting_appliance_led(6);
+						state_five_led = 0;
+					}										
 				}
 			}            
 			if(!get_cuband_state())  //发带断开连接执行，返回0表示未连接，1表示已连接
 			{
+				state_five_led = 1;
+				g_led_num_flag = -1;
 				printf("发带断开连接关闭灯光嘛................\n");
             	lifting_appliance_control(2);
 				lifting_appliance_led(6);			  
@@ -966,7 +986,8 @@ static void *music_status_reply_thread(void *arg)
 			}         	
 			if(med_info.meding)
 		   	{
-            	info = get_meddata_form_ble();
+            	//info = get_meddata_form_ble();
+				printf("\n保存到数组中的专注度，放松度：%d,....%d...........\n",(int)(info->X_brain_concentration),(int)(info->X_brain_attention));
                 med_info.zhuanzhu[med_info.med_time]=(int)(info->X_brain_concentration);
                 med_info.fangsong[med_info.med_time]=(int)(info->X_brain_attention);
 				//逻辑：如果训练时长大于30秒，且一首歌播放完毕

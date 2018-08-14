@@ -173,7 +173,7 @@ void lifting_appliance_init()
 void lifting_appliance_control(int sign)
 {
 	int ret = -1;
-	printf("???????????sign:%d\n",sign);  
+	//printf("???????????sign:%d\n",sign);  
   	char up[6] = {0xAA,0XAA,0x02,0x01,0x01,0x02};
   	char stop[6] = {0xAA,0XAA,0x02,0x01,0x03,0x04};
   	char down[6] = {0xAA,0XAA,0x02,0x01,0x02,0x03};
@@ -264,11 +264,27 @@ void lifting_appliance_led_PS(int i)
 	switch(i)
 	{
 		case 1:
-			system("echo 1 > /sys/class/leds/led-wifi1/brightness");	
-			system("echo 1 > /sys/class/leds/led-bt1/brightness");
-			system("echo 1 > /sys/class/leds/led-aux/brightness");	
-			system("echo 1 > /sys/class/leds/led-usb/brightness");	
+			
+			system("echo timer > /sys/class/leds/led-wifi1/trigger");	
+			system("echo 0 > /sys/class/leds/led-wifi1/delay_on");	
+	        system("echo 0 > /sys/class/leds/led-wifi1/delay_off");
+			system("echo 1 > /sys/class/leds/led-wifi1/brightness");
 
+			system("echo timer > /sys/class/leds/led-bt1/trigger");	
+			system("echo 0 > /sys/class/leds/led-bt1/delay_on");	
+			system("echo 0 > /sys/class/leds/led-bt1/delay_off");
+			system("echo 1 > /sys/class/leds/led-bt1/brightness");
+
+			system("echo timer > /sys/class/leds/led-aux/trigger");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_on");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_off");
+			system("echo 1 > /sys/class/leds/led-aux/brightness");	
+
+			system("echo timer > /sys/class/leds/led-usb/trigger");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_on");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_off");
+			system("echo 1 > /sys/class/leds/led-usb/brightness");
+			
 			system("echo 1 > /sys/class/leds/led-charge/brightness");
 			system("echo timer > /sys/class/leds/led-charge/trigger");	
             system("echo 500 > /sys/class/leds/led-charge/delay_on");	
@@ -276,8 +292,23 @@ void lifting_appliance_led_PS(int i)
 			break;
 			
 		case 2:
+			//system("echo 1 > /sys/class/leds/led-bt1/brightness");
+			//system("echo 1 > /sys/class/leds/led-aux/brightness");	
+			//system("echo 1 > /sys/class/leds/led-usb/brightness");
+
+			system("echo timer > /sys/class/leds/led-bt1/trigger");	
+			system("echo 0 > /sys/class/leds/led-bt1/delay_on");	
+			system("echo 0 > /sys/class/leds/led-bt1/delay_off");
 			system("echo 1 > /sys/class/leds/led-bt1/brightness");
+			
+			system("echo timer > /sys/class/leds/led-aux/trigger");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_on");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_off");
 			system("echo 1 > /sys/class/leds/led-aux/brightness");	
+			
+			system("echo timer > /sys/class/leds/led-usb/trigger");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_on");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_off");
 			system("echo 1 > /sys/class/leds/led-usb/brightness");
 			
 			system("echo 1 > /sys/class/leds/led-charge/brightness");
@@ -292,9 +323,19 @@ void lifting_appliance_led_PS(int i)
 			break;
 			
 		case 3:
-			system("echo 1 > /sys/class/leds/led-aux/brightness");	
+			//system("echo 1 > /sys/class/leds/led-aux/brightness");	
+			//system("echo 1 > /sys/class/leds/led-usb/brightness");
+			
+			system("echo timer > /sys/class/leds/led-aux/trigger");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_on");	
+			system("echo 0 > /sys/class/leds/led-aux/delay_off");
+			system("echo 1 > /sys/class/leds/led-aux/brightness");
+
+			system("echo timer > /sys/class/leds/led-usb/trigger");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_on");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_off");
 			system("echo 1 > /sys/class/leds/led-usb/brightness");
-		
+			
 			system("echo 1 > /sys/class/leds/led-charge/brightness");
 			system("echo timer > /sys/class/leds/led-charge/trigger");	
             system("echo 500 > /sys/class/leds/led-charge/delay_on");	
@@ -312,8 +353,12 @@ void lifting_appliance_led_PS(int i)
 			break;
 
 		case 4:
+			//system("echo 1 > /sys/class/leds/led-usb/brightness");
+			system("echo timer > /sys/class/leds/led-usb/trigger");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_on");	
+			system("echo 0 > /sys/class/leds/led-usb/delay_off");
 			system("echo 1 > /sys/class/leds/led-usb/brightness");
-		
+			
 			system("echo 1 > /sys/class/leds/led-charge/brightness");
 			system("echo timer > /sys/class/leds/led-charge/trigger");	
             system("echo 500 > /sys/class/leds/led-charge/delay_on");	
@@ -562,7 +607,7 @@ void lifting_appliance_led(int i)
 			system("echo 0 > /sys/class/leds/led-aux/brightness");	
 			system("echo 0 > /sys/class/leds/led-usb/brightness");			
 			break;
-
+		
 	    default:
 	   		system("echo timer > /sys/class/leds/led-charge/trigger");	
 	   		system("echo 0 > /sys/class/leds/led-charge/delay_on");	

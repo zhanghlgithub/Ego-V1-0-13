@@ -58,6 +58,8 @@ static pthread_cond_t ble_var = PTHREAD_COND_INITIALIZER;
 static bool open_chancal = false;
 
 unsigned char g_Tower_binnumber[20] = {0};	//新添加于2018.7.31号
+//unsigned char g_x_number[20] = {0};
+
 int g_tower_power = 0;
 int g_tower_if_power = 0;
 
@@ -1362,14 +1364,14 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 							//printf("enter to %x, %x\n",date[i+n],date[i+n+1]);
 							info->X_brain_quality = date[i+n+1];
 							n=n+1;
-							printf("X_brain_quality=%d\n",(int)info->X_brain_quality);
+							//printf("X_brain_quality=%d\n",(int)info->X_brain_quality);
 							break;
 						}
 						case 0x04:														//专注度参数(0x04)
 						{
 							info->X_brain_concentration=date[i+n+1];
 							n=n+1;
-							//printf("X_brain_concentration=%x\n",info->X_brain_concentration);
+							printf("X_brain_concentration=%x\n",info->X_brain_concentration);
 							break;
 						}
 						case 0x05:														//方松度参数(0x05)
@@ -1377,7 +1379,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 							info->X_brain_attention=date[i+n+1];
 							//if(get_tower_state())
 							//Pack_write(X_brain,&(info->X_brain_quality),0 );
-							if(med_info.meding&&med_info.med_time>=5)
+							if(med_info.meding&&med_info.med_time>=7)
 							{
 								memset(brain_date, 0, 200);
 								time(&timep);
@@ -1397,7 +1399,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 				 	                                 (int)info->brain_parameter.high_gamma[0]*256*256+(int)info->brain_parameter.high_gamma[1]*256+(int)info->brain_parameter.high_gamma[2]
 				 	                                 );
 
-								fwrite(brain_date,1,strlen(brain_date),fp_B);
+								fwrite(brain_date,1,strlen(brain_date)+1,fp_B);
 							}
 							n=n+1;
 							Pack_write(X_brain,&(info->X_brain_quality),0 );	
@@ -1452,7 +1454,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 							break;
 						}	
 						case 0x81:														//原始脑电组合数据(0x81)
-			            	if(med_info.meding&&med_info.med_time>=5)
+			            	if(med_info.meding&&med_info.med_time>=7)
 							{
 								memset(original_brain_date, 0, 100);
 								time(&timep);
@@ -1465,7 +1467,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 				 	                      (int)date[i+n+10]*256+(int)date[i+n+11], (int)date[i+n+12]*256+(int)date[i+n+13],
 				 	                      (int)date[i+n+14]*256+(int)date[i+n+15]
 				 	                      );
-								fwrite(original_brain_date,1,strlen(original_brain_date),fp_R);
+								fwrite(original_brain_date,1,strlen(original_brain_date)+1,fp_R);
 								printf("\noriginal_brain_date=%s\n",original_brain_date);
 							}	
 							n=n+15;	
@@ -1496,6 +1498,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 							length=(int)date[i+n+1];
 							memset(info->X_number,0,20);
 							memcpy(info->X_number,&date[i+n+2],length);
+							//memcpy(g_x_number,info->X_number,length);
 							n=n+length+1;
 							break;
 						}//长度不固定
